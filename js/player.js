@@ -33,12 +33,15 @@ function Player(){
 
   self.set_path = function(p){
     self.path = p;
-    self._move_abs(self.path.shift());
+    if(!self.is_moving){
+      self._move_abs(self.path.shift());
+    }
   }
 
   self.set_target = function(x,y){
-    if(x == self.x && y == self.y) return;
-    var path = route([self.x, self.y], [x, y]);
+    if (x == self.x && y == self.y) return;
+    var start = (self.is_moving) ? [self.target_x, self.target_y] : [self.x, self.y];
+    var path = route(start, [x, y]);
     if(path){
       path.shift();
       self.set_path(path);
