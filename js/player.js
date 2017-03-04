@@ -1,7 +1,7 @@
 function Player(){
   var self = this;
 
-  self._speed = 0.1; // blocks per second
+  self._speed = 0.005; // blocks per second
 
   self.x = 0;
   self.y = 0;
@@ -11,6 +11,7 @@ function Player(){
   self.path = [];
 
   self.is_moving = false;
+  self.move_start_time = false;
 
   self._move_abs = function(x, y){
     if(self.is_moving) return;
@@ -21,6 +22,7 @@ function Player(){
     self.target_x = x;
     self.target_y = y;
     if(self.target_x !== self.x || self.target_y !== self.y){
+      self.move_start_time = performance.now();
       self.is_moving = true;
     }
   }
@@ -37,27 +39,34 @@ function Player(){
   self.set_target = function(x,y){
     if(x == self.x && y == self.y) return;
     var path = route([self.x, self.y], [x, y]);
-    path.shift();
-    self.set_path(path);
+    if(path){
+      path.shift();
+      self.set_path(path);
+    }
+  }
+
+  self.get_pos = function(){
+    if(!self.is_moving) return [self.x, self.y];
+    var now = performance.now();
+    return [
+      self.x + (self.target_x - self.x) * Math.min(self._speed * (now - self.move_start_time), 1),
+      self.y + (self.target_y - self.y) * Math.min(self._speed * (now - self.move_start_time), 1)
+    ]
+  }
+
+  self._stop_moving = function(){
+    self.x = self.target_x;
+    self.y = self.target_y;
+    self.is_moving = false;
+    if(self.path.length > 0){
+      self._move_abs(self.path.shift());
+    }
   }
 
   self.tick = function(){
     if (self.is_moving){
-      if(self.x < self.target_x){
-        self.x = Math.min(self.x + self._speed, self.target_x);
-      }else if(self.x > self.target_x){
-        self.x = Math.max(self.x - self._speed, self.target_x);
-      }
-      if(self.y < self.target_y){
-        self.y = Math.min(self.y + self._speed, self.target_y);;
-      }else if(self.y > self.target_y){
-        self.y = Math.max(self.y - self._speed, self.target_y);
-      }
-      if(self.target_x === self.x && self.target_y === self.y){
-        self.is_moving = false;
-        if(self.path.length > 0){
-          self._move_abs(self.path.shift());
-        }
+      if(self._speed * (performance.now() - self.move_start_time) >= 1){
+        self._stop_moving();
       }
     }
   }

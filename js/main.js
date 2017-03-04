@@ -11,9 +11,17 @@ function Game(){
   self.ticker = setInterval(function(){self.tick();}, 10);
   self.player = new Player();
 
+  self.tile_x = null;
+  self.tile_y = null;
+
   self.draw = function(){
     self.ctx.clearRect(0,0,TILE_SIZE * WIDTH, TILE_SIZE * HEIGHT);
     self.ctx.beginPath();
+    if (self.tile_x !== null && self.tile_y !== null){
+      self.ctx.fillStyle="#888";
+      self.ctx.fillRect(self.tile_x*TILE_SIZE, self.tile_y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      self.ctx.fillStyle="#000000";
+    }
     for(var i=0;i<=WIDTH;i++){
       self.ctx.moveTo(i*TILE_SIZE, 0);
       self.ctx.lineTo(i*TILE_SIZE, HEIGHT*TILE_SIZE);
@@ -24,8 +32,9 @@ function Game(){
     }
     self.ctx.stroke();
     self.ctx.beginPath();
-    self.ctx.arc(self.player.x * TILE_SIZE + TILE_HALF,
-                 self.player.y * TILE_SIZE + TILE_HALF,
+    var pos = self.player.get_pos();
+    self.ctx.arc(pos[0] * TILE_SIZE + TILE_HALF,
+                 pos[1] * TILE_SIZE + TILE_HALF,
                  TILE_HALF/2, 0, 2*Math.PI);
     self.ctx.closePath();
     self.ctx.fill();
@@ -53,6 +62,11 @@ function Game(){
 
   self.click = function(x, y){
     self.player.set_target(x,y);
+  }
+
+  self.setTile = function(x,y){
+    self.tile_x = x;
+    self.tile_y = y;
   }
 
   self.getGrid = function(){
@@ -93,6 +107,14 @@ $('body').on('keydown', function keyHandler(e){
   }
 });
 
+function setTile(e){
+  window.game.setTile(Math.floor(e.offsetX / TILE_SIZE), Math.floor(e.offsetY / TILE_SIZE));
+}
+
 $('#main canvas').on('click', function(e){
-  window.game.click(Math.floor(e.offsetX / TILE_SIZE), Math.floor(e.offsetY / TILE_SIZE))
+  window.game.click(Math.floor(e.offsetX / TILE_SIZE), Math.floor(e.offsetY / TILE_SIZE));
 });
+$('#main canvas').on('hover',
+  setTile , function(e){
+  window.game.setTile(null, null);
+}).on('mousemove', setTile);
