@@ -1,5 +1,7 @@
-function Player(){
+function Player(game){
   var self = this;
+
+  self.game = game;
 
   self._speed = 0.005; // blocks per second
 
@@ -46,6 +48,16 @@ function Player(){
       path.shift();
       self.set_path(path);
     }
+  }
+
+  self.draw = function(ctx){
+    ctx.beginPath();
+    var pos = self.get_pos();
+    ctx.arc(pos[0] * self.game.map.TILE_SIZE + self.game.map.TILE_HALF,
+                 pos[1] * self.game.map.TILE_SIZE + self.game.map.TILE_HALF,
+                 self.game.map.TILE_HALF/2, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.fill();
   }
 
   self.get_pos = function(){
