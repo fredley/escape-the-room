@@ -13,9 +13,21 @@ function Game(){
   self.tile_x = null;
   self.tile_y = null;
 
+  self.state = {
+    energy: 10,
+    happiness: 0,
+    day: 0,
+    hour: 0
+  };
+
   self.draw = function(){
     self.map.draw(self.ctx)
     self.player.draw(self.ctx);
+    Object.keys(self.state).forEach(function(s){
+      if (self.state.hasOwnProperty(s)){
+        $('#state-'+s).text(self.state[s]);
+      }
+    });
   };
 
   self.tick = function(){
@@ -41,8 +53,6 @@ function Game(){
   self.click = function(x, y){
     if(self.map.can_move(x,y)){
       self.player.set_target(x,y);
-    }else{
-      console.log("cannot")
     }
   }
 

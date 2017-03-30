@@ -1,3 +1,7 @@
+*{
+  box-sizing: border-box;
+}
+
 body{
   background: #555;
 }
@@ -10,5 +14,25 @@ canvas{
 }
 #main{
   width:512px;
-  margin:50px auto;
+  margin:0 auto;
+}
+#state{
+  background: #777;
+  width: 510px;
+  margin: 20px auto 0 auto;
+  border: 2px solid #999;
+  padding: 10px 20px;
+}
+#state > div{
+  width: 50%;
+  float: left;
+  padding: 3px;
+  font-family: Helvetica;
+  font-variant: small-caps;
+  color: #ddd;
+}
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
 }
