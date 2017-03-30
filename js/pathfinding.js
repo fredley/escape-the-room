@@ -28,7 +28,7 @@ var route = function(start, target) {
 
   };
 
-  this.grid = game.getGrid();
+  this.grid = JSON.parse(JSON.stringify(game.map.grid));
   this.found = false;
 
   this.target_x = target[0];

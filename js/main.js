@@ -39,7 +39,11 @@ function Game(){
   }
 
   self.click = function(x, y){
-    self.player.set_target(x,y);
+    if(self.map.can_move(x,y)){
+      self.player.set_target(x,y);
+    }else{
+      console.log("cannot")
+    }
   }
 
   self.setTile = function(x,y){
