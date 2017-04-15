@@ -36,3 +36,6 @@ canvas{
   display: table;
   clear: both;
 }
+.mask{
+  filter: grayscale(10%);
+}
