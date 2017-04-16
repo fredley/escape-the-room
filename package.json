@@ -1,0 +1,17 @@
+{
+  "name": "escape-the-room",
+  "version": "0.0.1",
+  "description": "A game in which you can escape the room",
+  "author": "Fredley <fredley@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fredley/escape"
+  },
+  "dependencies": {
+    "typescript": "2.2.2",
+    "webpack": "2.4.1",
+    "ts-loader": "2.0.3",
+    "source-map-loader": "0.2.1"
+  },
+  "license": "MIT"
+}

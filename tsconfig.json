@@ -6,10 +6,10 @@
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "outDir": "../build",
+        "outDir": "./build",
         "allowJs": true
     },
     "include": [
-        "./*"
+        "src/*"
     ]
 }

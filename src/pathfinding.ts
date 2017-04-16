@@ -1,47 +1,43 @@
+import Coords from "./Coords"
 import Game from "./main"
 
 class PathLocation{
-  x: number;
-  y: number;
-  path: Array<Array<number>>;
+  pos: Coords;
+  path: Array<Coords>;
 
-  constructor(x: number, y: number, path: Array<Array<number>>){
-    this.x = x;
-    this.y = y;
+  constructor(pos: Coords, path: Array<Coords>){
+    this.pos = pos;
     this.path = path;
   }
 }
 
 export default class Pathfinder{
 // Start location will be in the following format:
-  static route(game: Game, start: Array<number>, target: Array<number> ) {
+  static route(game: Game, start: Coords, target: Coords ) {
     var found : boolean = false;
     var grid : Array<Array<boolean>> = JSON.parse(JSON.stringify(game.map.grid));
 
-    var target_x = target[0];
-    var target_y = target[1];
+    var queue = [new PathLocation(start, [])];
+    var path: Array<Coords> = [];
 
-    var queue = [new PathLocation(start[0], start[1], [])];
-    var path: Array<Array<number>> = [];
-
-    var canVisit = function(x: number, y: number) {
-      return (!(x < 0 || x >= grid.length ||
-          y < 0 || y >= grid[0].length)
-          && (grid[x][y]));
+    var canVisit = function(c: Coords) {
+      return (!(c.x < 0 || c.x >= grid.length ||
+          c.y < 0 || c.y >= grid[0].length)
+          && (grid[c.x][c.y]));
     };
 
     var explore = function(loc: PathLocation, dx: number, dy: number) {
       var newPath = loc.path.slice();
-      newPath.push([loc.x, loc.y]);
+      newPath.push(new Coords(loc.pos.x, loc.pos.y));
 
-      var new_loc = new PathLocation(loc.x + dx,loc.y + dy,newPath);
+      var new_loc = new PathLocation(loc.pos.plus(new Coords(dx, dy)), newPath);
 
-      if (new_loc.x == target_x && new_loc.y == target_y){
+      if (new_loc.pos.equals(target)){
         found = true;
-        newPath.push([target_x, target_y]);
+        newPath.push(target);
         path = newPath;
-      } else if (canVisit(new_loc.x, new_loc.y)) {
-        grid[new_loc.x][new_loc.y] = false;
+      } else if (canVisit(new_loc.pos)) {
+        grid[new_loc.pos.x][new_loc.pos.y] = false;
         queue.push(new_loc);
       }
 

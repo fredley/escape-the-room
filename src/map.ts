@@ -1,8 +1,9 @@
+import Coords from "./Coords"
 import Game from "./main"
 import Player from "./player"
 import {Objects, Item} from "./objects"
 
-export default class Map{
+export class Map{
 
   static WIDTH: number = 16;
   static HEIGHT: number = 14;
@@ -23,7 +24,7 @@ export default class Map{
       for (var j=0; j<Map.HEIGHT; j++) {
         grid[i][j] = true;
         this.objects.objects.forEach(function(o){
-          if(o.x == i && o.y == j){
+          if(o.covers(new Coords(i,j))){
             grid[i][j] = false;
           }
         });
@@ -58,31 +59,21 @@ export default class Map{
 
   or_reduce(a: any, b: any){ return a || b }
 
-  can_move(x: number, y: number){
+  can_move(c: Coords){
     return !this.objects.objects
-      .map(function(o){ return o.x == x && o.y == y })
+      .map(function(o){ return o.covers(c) })
       .reduce(this.or_reduce);
   }
 
-  is_interactible(x: number, y: number){
+  is_interactible(c: Coords){
     return this.objects.objects
-      .map(function(o){ return o.x == x && o.y == y && o.is_interactible() })
+      .map(function(o){ return o.covers(c) && o.is_interactible })
       .reduce(this.or_reduce);
   }
 
-  object_at(x: number, y: number){
+  object_at(c: Coords){
     return this.objects.objects
-      .map(function(o){ return (o.x == x && o.y == y) ? o : null })
+      .map(function(o){ return (o.covers(c)) ? o : null })
       .reduce(this.or_reduce);
-  }
-
-  get_coords(pos: Array<number>, top_left: boolean = false){
-    // return midpoint if not top_left
-    if(top_left){
-      return [pos[0] * Map.TILE_SIZE,
-              pos[1] * Map.TILE_SIZE]
-    }
-    return [pos[0] * Map.TILE_SIZE + Map.TILE_HALF,
-            pos[1] * Map.TILE_SIZE + Map.TILE_HALF]
   }
 }

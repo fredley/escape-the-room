@@ -1,4 +1,5 @@
-import Map from "./map"
+import Coords from "./Coords"
+import {Map} from "./map"
 import Player from "./player"
 import {Objects, Item} from "./objects"
 import * as $ from "./jquery";
@@ -123,31 +124,30 @@ export default class Game{
   };
 
   left(){
-    this.player.move(-1, 0);
+    this.player.move(new Coords(-1, 0));
   }
 
   right(){
-    this.player.move(1, 0);
+    this.player.move(new Coords(1, 0));
   }
 
   up(){
-    this.player.move(0, -1);
+    this.player.move(new Coords(0, -1));
   }
 
   down(){
-    this.player.move(0, 1);
+    this.player.move(new Coords(0, 1));
   }
 
   click(e: MouseEvent){
-    var x = Math.floor(e.offsetX / Map.TILE_SIZE);
-    var y = Math.floor(e.offsetY / Map.TILE_SIZE);
+    var c = new Coords(Math.floor(e.offsetX / Map.TILE_SIZE), Math.floor(e.offsetY / Map.TILE_SIZE));
     if(this.message_initialised && this.button_highlight){
       this.message = "";
       this.message_initialised = false;
-    }else if(this.map.can_move(x,y)){
-      this.player.set_target(x,y);
-    }else if(this.map.is_interactible(x,y)){
-      this.player.target(this.map.object_at(x,y))
+    }else if(this.map.can_move(c)){
+      this.player.set_target(c);
+    }else if(this.map.is_interactible(c)){
+      this.player.target(this.map.object_at(c))
     }
   }
 
