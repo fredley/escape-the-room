@@ -1,4 +1,7 @@
 export default class Coords{
+
+  static TILE_SIZE: number = 32;
+
   x: number;
   y: number;
 
@@ -7,24 +10,28 @@ export default class Coords{
     this.y = y;
   }
 
+  static from_event(e: MouseEvent){
+    return new Coords(Math.floor(e.offsetX / Coords.TILE_SIZE), Math.floor(e.offsetY / Coords.TILE_SIZE));
+  }
+
   equals(c: Coords){
     return c.x == this.x && c.y == this.y;
   }
 
   real_mid_x(){
-    return this.x * 32 + 16;
+    return this.x * Coords.TILE_SIZE + Coords.TILE_SIZE/2;
   }
 
   real_mid_y(){
-    return this.y * 32 + 16;
+    return this.y * Coords.TILE_SIZE + Coords.TILE_SIZE/2;
   }
 
   real_x(){
-    return this.x * 32;
+    return this.x * Coords.TILE_SIZE;
   }
 
   real_y(){
-    return this.y * 32;
+    return this.y * Coords.TILE_SIZE;
   }
 
   plus(c: Coords){

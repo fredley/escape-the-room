@@ -1,7 +1,7 @@
 import Coords from "./Coords"
-import Game from "./main"
-import {Map} from "./map"
-import Player from "./player"
+import Game from "./Game"
+import {Map} from "./Map"
+import Player from "./Player"
 
 export class Item{
 
@@ -54,10 +54,62 @@ export class Item{
 }
 
 class Bed extends Item{
-
   constructor(game: Game, pos: Coords){
     super(game, "bed", pos, Item.INTERACT_IN);
     this.height=2;
+  }
+}
+
+class Desk extends Item{
+  constructor(game: Game, pos: Coords){
+    super(game, "desk", pos, Item.INTERACT_DOWN);
+    this.width=2;
+  }
+}
+
+class Sofa extends Item{
+  constructor(game: Game, pos: Coords){
+    super(game, "sofa", pos, Item.INTERACT_IN);
+    this.height=2;
+  }
+}
+
+class Plant extends Item{
+  constructor(game: Game, pos: Coords){
+    super(game, "plant", pos, Item.INTERACT_DOWN);
+  }
+}
+
+class Shelves extends Item{
+  constructor(game: Game, pos: Coords){
+    super(game, "shelves", pos, Item.INTERACT_DOWN);
+    this.width=2;
+  }
+}
+
+class Wardrobe extends Item{
+  constructor(game: Game, pos: Coords){
+    super(game, "wardrobe", pos, Item.INTERACT_UP);
+    this.width=3;
+  }
+}
+
+class Fridge extends Item{
+
+  pizzas: number = 3;
+
+  constructor(game: Game, pos: Coords){
+    super(game, "fridge", pos, Item.INTERACT_LEFT);
+  }
+
+  interact(){
+    if(this.pizzas > 0){
+      this.pizzas--;
+      this.game.showMessage("You eat a pizza, there are " + this.pizzas + " left.")
+      this.game.state.energy += 1;
+    }else{
+      this.game.showMessage("You open the fridge, but it's empty.")
+    }
   }
 
 }
@@ -73,17 +125,12 @@ export class Objects{
     this.objects =
     [
       new Bed(game, new Coords(0, 1)),
-      new Item(game, "desk", new Coords(1, 0), Item.INTERACT_DOWN),
-      new Item(game, "desk", new Coords(2, 0), Item.INTERACT_DOWN),
-      new Item(game, "sofa", new Coords(0, 4), Item.INTERACT_IN),
-      new Item(game, "sofa", new Coords(0, 5), Item.INTERACT_IN),
-      new Item(game, "plant", new Coords(3, 0), Item.INTERACT_DOWN),
-      new Item(game, "shelves", new Coords(4, 0), Item.INTERACT_DOWN),
-      new Item(game, "shelves", new Coords(5, 0), Item.INTERACT_DOWN),
-      new Item(game, "wardrobe", new Coords(4, 5), Item.INTERACT_UP),
-      new Item(game, "wardrobe", new Coords(5, 5), Item.INTERACT_UP),
-      new Item(game, "wardrobe", new Coords(6, 5), Item.INTERACT_UP),
-      new Item(game, "fridge", new Coords(8, 2), Item.INTERACT_LEFT),
+      new Desk(game, new Coords(1, 0)),
+      new Sofa(game, new Coords(0, 4)),
+      new Plant(game, new Coords(3, 0)),
+      new Shelves(game, new Coords(4, 0)),
+      new Wardrobe(game, new Coords(4, 5)),
+      new Fridge(game, new Coords(8, 2))
     ];
   }
 

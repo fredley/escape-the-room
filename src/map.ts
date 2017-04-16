@@ -1,16 +1,15 @@
 import Coords from "./Coords"
-import Game from "./main"
-import Player from "./player"
-import {Objects, Item} from "./objects"
+import Game from "./Game"
+import Player from "./Player"
+import {Objects, Item} from "./Objects"
 
 export class Map{
 
   static WIDTH: number = 16;
   static HEIGHT: number = 14;
   static TILE_SIZE: number = 32;
-  static TILE_HALF: number = Map.TILE_SIZE/2;
 
-  game: Game;
+  private game: Game;
   objects: Objects;
   grid: Array<Array<boolean>>;
 
@@ -38,8 +37,8 @@ export class Map{
     ctx.clearRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT);
     ctx.beginPath();
     ctx.fillStyle="#888";
-    if (this.game.tile_x !== null && this.game.tile_y !== null){
-      ctx.fillRect(this.game.tile_x*Map.TILE_SIZE, this.game.tile_y*Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE);
+    if (this.game.tile_pos){
+      ctx.fillRect(this.game.tile_pos.x*Map.TILE_SIZE, this.game.tile_pos.y*Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE);
     }
     ctx.font = Map.TILE_SIZE + "px Arial";
     this.objects.objects.forEach(function(o){

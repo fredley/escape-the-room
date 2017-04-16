@@ -1,5 +1,5 @@
 import Coords from "./Coords"
-import Game from "./main"
+import Game from "./Game"
 
 class PathLocation{
   pos: Coords;

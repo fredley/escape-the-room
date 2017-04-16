@@ -3,7 +3,7 @@ var webpack = require('webpack');
 var PROD = JSON.parse(process.env.PROD_ENV || '0');
 
 module.exports = {
-   entry: './src/main.ts',
+   entry: './src/Game.ts',
    output: {
      filename: 'bundle.js',
  },
