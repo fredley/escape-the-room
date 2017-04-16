@@ -82,9 +82,7 @@ export default class Player {
     };
 
     private interact() {
-        console.log("interact")
         if(this.cb){
-            console.log("calling callback!")
             this.cb();
             this.cb = null;
         }else{

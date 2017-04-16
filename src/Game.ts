@@ -22,13 +22,19 @@ export default class Game{
 
   private message: string = "";
   private message_cb: Function;
+  private message_cb_2: Function;
 
   private message_initialised: boolean = false;
   private message_complete: boolean = false;
   private message_start_time: number = null;
+  private message_choice: boolean = false;
+
   private drawn_message: string = "";
   private letters_per_second: number = 30;
+  private button_text_1: string;
+  private button_text_2: string;
   private button_highlight: boolean = false;
+  private button_highlight_2: boolean = false;
 
   private betwixt_days: boolean = true;
   private allow_interaction: boolean = false;
@@ -115,8 +121,6 @@ export default class Game{
       ctx.fillRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT);
       ctx.fillStyle="#333";
       ctx.fillRect(Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE * (Map.WIDTH - 2), Map.TILE_SIZE * (Map.HEIGHT - 2));
-      // Draw message letter by letter - TIME BASED, NOT FPS
-      // TODO
       if(!this.message_complete){
         // still letters to draw
         this.drawn_message = this.message.substr(0,
@@ -130,16 +134,35 @@ export default class Game{
 
       var chunks = this.splitLines(this.drawn_message, 38);
       chunks.forEach(function(line, idx){
-        ctx.fillText(line.strip(), Map.TILE_SIZE * 3, Map.TILE_SIZE * 3 + idx * 16);
+        ctx.fillText(line.trim(), Map.TILE_SIZE * 3, Map.TILE_SIZE * 3 + idx * 16);
       });
       // When done, draw interaction buttons
-      ctx.fillStyle= (this.button_highlight) ? "#777" : "#555";
-      ctx.fillRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
-      ctx.strokeRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
-      ctx.fillStyle="#fff";
-      ctx.font = "18px monospace";
-      var width = ctx.measureText("X").width;
-      ctx.fillText("X", Map.TILE_SIZE * 8 - width/2, Map.TILE_SIZE * 11 + 5);
+      if(this.message_complete){
+        if(this.message_choice){
+          ctx.fillStyle= (this.button_highlight) ? "#777" : "#555";
+          ctx.fillRect(Map.TILE_SIZE * 2, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
+          ctx.strokeRect(Map.TILE_SIZE * 2, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
+          ctx.fillStyle="#fff";
+          ctx.font = "18px monospace";
+          var width = ctx.measureText("X").width;
+          ctx.fillText(this.button_text_1, Map.TILE_SIZE * 4.5 - width/2, Map.TILE_SIZE * 11 + 5);
+
+          ctx.fillStyle= (this.button_highlight_2) ? "#777" : "#555";
+          ctx.fillRect(Map.TILE_SIZE * 9, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
+          ctx.strokeRect(Map.TILE_SIZE * 9, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
+          ctx.fillStyle="#fff";
+          var width = ctx.measureText("X").width;
+          ctx.fillText(this.button_text_2, Map.TILE_SIZE * 11.5 - width/2, Map.TILE_SIZE * 11 + 5);
+        }else{
+          ctx.fillStyle= (this.button_highlight) ? "#777" : "#555";
+          ctx.fillRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
+          ctx.strokeRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
+          ctx.fillStyle="#fff";
+          ctx.font = "18px monospace";
+          var width = ctx.measureText("X").width;
+          ctx.fillText("X", Map.TILE_SIZE * 8 - width/2, Map.TILE_SIZE * 11 + 5);
+        }
+      }
     }
     //night time!
     if(this.is_night){
@@ -165,7 +188,17 @@ export default class Game{
 
   showMessage(message: string, cb: Function = null){
     this.message = message;
+    this.message_choice = false;
     this.message_cb = cb;
+  }
+
+  showChoiceMessage(message: string, left: string, right: string, cb_left: Function, cb_right: Function){
+    this.message = message;
+    this.message_choice = true;
+    this.button_text_1 = left;
+    this.button_text_2 = right;
+    this.message_cb = cb_left;
+    this.message_cb_2 = cb_right;
   }
 
   tick(){
@@ -198,11 +231,16 @@ export default class Game{
 
   click(e: MouseEvent){
     var c = Coords.from_event(e);
-    if(this.message_initialised && this.button_highlight){
+    if(this.message_initialised && !this.message_complete){
+      this.message_complete = true;
+      this.drawn_message = this.message;
+    }else if(this.message_initialised && (this.button_highlight || this.button_highlight_2)){
       this.message = "";
       this.message_initialised = false;
-      if(this.message_cb){
+      if(this.message_cb && this.button_highlight){
         this.message_cb();
+      }else if(this.message_cb_2 && this.button_highlight_2){
+        this.message_cb_2();
       }
     }else if(this.allow_interaction && this.map.can_move(c)){
       this.player.set_target_square(c);
@@ -216,7 +254,12 @@ export default class Game{
     if(!this.message_initialised && this.allow_interaction){
       this.setTile(c);
     }else{
-      this.button_highlight = c.x >= 5 && c.x < 11 && c.y >= 10 && c.y < 12;
+      if(this.message_choice){
+        this.button_highlight = c.x >= 2 && c.x < 7 && c.y >= 10 && c.y < 12;
+        this.button_highlight_2 = c.x >= 9 && c.x < 14 && c.y >= 10 && c.y < 12;
+      }else{
+        this.button_highlight = c.x >= 5 && c.x < 11 && c.y >= 10 && c.y < 12;
+      }
     }
   }
 
@@ -232,7 +275,6 @@ export default class Game{
 
 $(document).ready(function(){
   let game = new Game();
-
   $('#main canvas').on('click',
     (e: MouseEvent) => game.click(e)
   ).on('hover',
