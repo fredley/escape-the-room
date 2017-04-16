@@ -62,6 +62,7 @@ export default class Game{
 
   startDay(){
     var self = this;
+    self.map.objects.day_tick();
     self.is_night = false;
     self.showMessage("You wake up at the start of a new day", function(){
       self.showMessage("You feel terrible", function(){
@@ -92,9 +93,10 @@ export default class Game{
 
   draw(){
     let draw_time = performance.now();
+    let ctx = this.ctx;
 
-    this.map.draw(this.ctx);
-    this.player.draw(this.ctx);
+    this.map.draw(ctx);
+    this.player.draw(ctx);
     for (var s in this.state){
       if (this.state.hasOwnProperty(s)){
         $('#state-'+s).text(this.state[s]);
@@ -109,10 +111,10 @@ export default class Game{
         this.setTile(null);
       }
       // Draw shade rect over whole map
-      this.ctx.fillStyle="rgba(255,255,255,0.5)";
-      this.ctx.fillRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT);
-      this.ctx.fillStyle="#333";
-      this.ctx.fillRect(Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE * (Map.WIDTH - 2), Map.TILE_SIZE * (Map.HEIGHT - 2));
+      ctx.fillStyle="rgba(255,255,255,0.5)";
+      ctx.fillRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT);
+      ctx.fillStyle="#333";
+      ctx.fillRect(Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE * (Map.WIDTH - 2), Map.TILE_SIZE * (Map.HEIGHT - 2));
       // Draw message letter by letter - TIME BASED, NOT FPS
       // TODO
       if(!this.message_complete){
@@ -123,49 +125,42 @@ export default class Game{
           this.message_complete = true;
         }
       }
-      this.ctx.fillStyle="#fff";
-      this.ctx.font = "14px monospace";
-      this.ctx.fillText(this.drawn_message, Map.TILE_SIZE * 3, Map.TILE_SIZE * 3);
+      ctx.fillStyle="#fff";
+      ctx.font = "14px monospace";
+
+      var chunks = this.splitLines(this.drawn_message, 38);
+      chunks.forEach(function(line, idx){
+        ctx.fillText(line.strip(), Map.TILE_SIZE * 3, Map.TILE_SIZE * 3 + idx * 16);
+      });
       // When done, draw interaction buttons
-      this.ctx.fillStyle= (this.button_highlight) ? "#777" : "#555";
-      this.ctx.fillRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
-      this.ctx.strokeRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
-      this.ctx.fillStyle="#fff";
-      this.ctx.font = "18px monospace";
-      var width = this.ctx.measureText("X").width;
-      this.ctx.fillText("X", Map.TILE_SIZE * 8 - width/2, Map.TILE_SIZE * 11 + 5);
+      ctx.fillStyle= (this.button_highlight) ? "#777" : "#555";
+      ctx.fillRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
+      ctx.strokeRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
+      ctx.fillStyle="#fff";
+      ctx.font = "18px monospace";
+      var width = ctx.measureText("X").width;
+      ctx.fillText("X", Map.TILE_SIZE * 8 - width/2, Map.TILE_SIZE * 11 + 5);
     }
     //night time!
     if(this.is_night){
       var night_elapsed = draw_time - this.night_start_time;
       if (night_elapsed < Game.NIGHT_FADE_TIME){
-        this.ctx.fillStyle = "rgba(0,0,0," + (night_elapsed / Game.NIGHT_FADE_TIME) + ")";
+        ctx.fillStyle = "rgba(0,0,0," + (night_elapsed / Game.NIGHT_FADE_TIME) + ")";
       } else if (night_elapsed < 2 * Game.NIGHT_FADE_TIME){
-        this.ctx.fillStyle = "#000";
+        ctx.fillStyle = "#000";
       } else {
-        this.ctx.fillStyle = "rgba(0,0,0," + (1 - (night_elapsed - 2*Game.NIGHT_FADE_TIME) / Game.NIGHT_FADE_TIME) + ")";
+        ctx.fillStyle = "rgba(0,0,0," + (1 - (night_elapsed - 2*Game.NIGHT_FADE_TIME) / Game.NIGHT_FADE_TIME) + ")";
       }
-      this.ctx.fillRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT);
+      ctx.fillRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT);
     }
   };
 
-  getLines (ctx : CanvasRenderingContext2D , text: string, maxWidth: number) {
-    var words = text.split(" ");
-    var lines = [];
-    var currentLine = words[0];
-
-    for (var i = 1; i < words.length; i++) {
-      var word = words[i];
-      var width = ctx.measureText(currentLine + " " + word).width;
-      if (width < maxWidth) {
-        currentLine += " " + word;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      }
+  splitLines(str: string, len: number) {
+    var ret = [];
+    for (var offset = 0, strLen = str.length; offset < strLen; offset += len) {
+      ret.push(str.slice(offset, len + offset));
     }
-    lines.push(currentLine);
-    return lines;
+    return ret;
   }
 
   showMessage(message: string, cb: Function = null){

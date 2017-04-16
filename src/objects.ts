@@ -28,6 +28,10 @@ export class Item{
     this.is_interactible = true;
   }
 
+  day_tick(){
+
+  }
+
   interact(){
     this.game.showMessage("Interaction with " + this.name);
   }
@@ -75,8 +79,32 @@ class Sofa extends Item{
 }
 
 class Plant extends Item{
+
+  last_checked_growth = 0;
+  growth: number = 0;
+  water: boolean = false;
+
   constructor(game: Game, pos: Coords){
     super(game, "plant", pos, Item.INTERACT_DOWN);
+  }
+
+  interact(){
+    if(this.growth == 0){
+      this.game.showMessage("You water the plant");
+    }else if(this.last_checked_growth < this.growth){
+      this.last_checked_growth = this.growth;
+      this.game.showMessage("You water the plant. It's grown a bit \nsince you last checked.");
+      this.game.state.happiness += 1;
+    }
+    this.water = true;
+    this.game.state.energy -= 1;
+  }
+
+  day_tick(){
+    if(this.water){
+      this.growth += 1;
+      this.water = false;
+    }
   }
 }
 
@@ -132,6 +160,12 @@ export class Objects{
       new Wardrobe(game, new Coords(4, 5)),
       new Fridge(game, new Coords(8, 2))
     ];
+  }
+
+  day_tick(){
+    this.objects.forEach(function(o){
+      o.day_tick();
+    });
   }
 
 }
