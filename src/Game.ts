@@ -17,6 +17,7 @@ export default class Game{
   state: Dictionary<number>;
   allow_interaction: boolean = false;
   action_timer: number;
+  betwixt_days: boolean = true;
 
   private ctx: CanvasRenderingContext2D;
   private render_loop: number;
@@ -38,7 +39,6 @@ export default class Game{
   private button_highlight: boolean = false;
   private button_highlight_2: boolean = false;
 
-  private betwixt_days: boolean = true;
 
   private night_start_time: number;
   private is_night: boolean = false;
@@ -147,23 +147,22 @@ export default class Game{
           ctx.strokeRect(Map.TILE_SIZE * 2, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
           ctx.fillStyle="#fff";
           ctx.font = "18px monospace";
-          var width = ctx.measureText("X").width;
-          ctx.fillText(this.button_text_1, Map.TILE_SIZE * 4.5 - width/2, Map.TILE_SIZE * 11 + 5);
+          var offset = Coords.centre_text(Map.TILE_SIZE * 5, ctx.measureText(this.button_text_1).width);
+          ctx.fillText(this.button_text_1, Map.TILE_SIZE * 2 + offset, Map.TILE_SIZE * 11 + 5);
 
           ctx.fillStyle= (this.button_highlight_2) ? "#777" : "#555";
           ctx.fillRect(Map.TILE_SIZE * 9, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
           ctx.strokeRect(Map.TILE_SIZE * 9, Map.TILE_SIZE * 10, Map.TILE_SIZE * 5, Map.TILE_SIZE * 2);
           ctx.fillStyle="#fff";
-          var width = ctx.measureText("X").width;
-          ctx.fillText(this.button_text_2, Map.TILE_SIZE * 11.5 - width/2, Map.TILE_SIZE * 11 + 5);
+          offset = Coords.centre_text(Map.TILE_SIZE * 5, ctx.measureText(this.button_text_2).width);
+          ctx.fillText(this.button_text_2, Map.TILE_SIZE * 9 + offset, Map.TILE_SIZE * 11 + 5);
         }else{
           ctx.fillStyle= (this.button_highlight) ? "#777" : "#555";
           ctx.fillRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
           ctx.strokeRect(Map.TILE_SIZE * 5, Map.TILE_SIZE * 10, Map.TILE_SIZE * 6, Map.TILE_SIZE * 2);
           ctx.fillStyle="#fff";
           ctx.font = "18px monospace";
-          var width = ctx.measureText("X").width;
-          ctx.fillText("X", Map.TILE_SIZE * 8 - width/2, Map.TILE_SIZE * 11 + 5);
+          ctx.fillText("X", Map.TILE_SIZE * 8 - ctx.measureText("X").width/2, Map.TILE_SIZE * 11 + 5);
         }
       }
     }
@@ -190,12 +189,14 @@ export default class Game{
   }
 
   showMessage(message: string, cb: Function = null){
+    this.day && this.day.pause();
     this.message = message;
     this.message_choice = false;
     this.message_cb = cb;
   }
 
-  showChoiceMessage(message: string, left: string, right: string, cb_left: Function, cb_right: Function){
+  showChoiceMessage(message: string, left: string, right: string, cb_left: Function, cb_right: Function = null){
+    this.day.pause();
     this.message = message;
     this.message_choice = true;
     this.button_text_1 = left;
@@ -218,7 +219,7 @@ export default class Game{
       var new_hour = this.day.get_hour();
       if(new_hour > this.state.hour){
         this.state.energy--;
-        if(this.state.energy == 0){
+        if(this.state.energy <= 0){
           this.endDay();
         }
         this.state.hour = new_hour;
@@ -240,6 +241,7 @@ export default class Game{
     }else if(this.message_initialised && (this.button_highlight || this.button_highlight_2)){
       this.message = "";
       this.message_initialised = false;
+      this.day && this.day.resume();
       if(this.message_cb && this.button_highlight){
         this.message_cb();
       }else if(this.message_cb_2 && this.button_highlight_2){

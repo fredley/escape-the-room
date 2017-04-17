@@ -19,6 +19,7 @@ export class Item{
 
   readonly name: string;
   protected game: Game;
+  protected active: boolean = false;
   readonly interact_direction: Coords;
 
   constructor(game: Game, name: string, position: Coords, interact_direction: Coords){
@@ -31,7 +32,12 @@ export class Item{
 
   day_tick(){}
 
-  end_day(){}
+  activate(){ this.active = true }
+  deactivate(){ this.active = false }
+
+  end_day(){
+    this.deactivate();
+  }
 
   interact(){
     this.game.showMessage("Interaction with " + this.name);
@@ -46,10 +52,11 @@ export class Item{
   }
 
   draw(ctx: CanvasRenderingContext2D){
+    var flash = this.active && Math.random() > 0.5;
     for(var i = this.position.x; i < this.position.x + this.width; i++){
        for(var j = this.position.y; j < this.position.y + this.height; j++){
           var c = new Coords(i,j);
-          ctx.fillStyle="#f00";
+          ctx.fillStyle= (flash) ? "#ff0" : "#f00";
           ctx.fillRect(c.real_x(), c.real_y(), Map.TILE_SIZE, Map.TILE_SIZE);
           ctx.fillStyle="#000000";
           var left = Coords.centre_text(Map.TILE_SIZE, ctx.measureText(this.name[0]).width);
@@ -68,7 +75,6 @@ class Bed extends Item{
 
 class Desk extends Item{
 
-  playing: boolean = false;
   played_today: number = 0;
 
   constructor(game: Game, pos: Coords){
@@ -80,10 +86,10 @@ class Desk extends Item{
     var self = this;
     self.game.showMessage("You sit down and play computer games...", function(){
       self.game.allow_interaction = false;
-      self.playing = true;
+      self.activate()
       self.game.action_timer = setTimeout(function(){
         self.game.allow_interaction = true;
-        self.playing = false;
+        self.deactivate();
         self.played_today++;
         var msg;
         switch(self.played_today){
@@ -104,25 +110,8 @@ class Desk extends Item{
     });
   }
 
-  end_day(){
-    this.playing = false;
-  }
-
   day_tick(){
     this.played_today = 0;
-  }
-
-  draw(ctx: CanvasRenderingContext2D){
-    var flash = this.playing && Math.random() > 0.5;
-    for(var i = this.position.x; i < this.position.x + this.width; i++){
-       for(var j = this.position.y; j < this.position.y + this.height; j++){
-          var c = new Coords(i,j);
-          ctx.fillStyle= (flash) ? "#ff0" : "#f00";
-          ctx.fillRect(c.real_x(), c.real_y(), Map.TILE_SIZE, Map.TILE_SIZE);
-          ctx.fillStyle="#000000";
-          ctx.fillText(this.name[0], c.real_x() + 10, c.real_y() + Map.TILE_SIZE*0.75);
-       }
-    }
   }
 }
 
@@ -164,10 +153,61 @@ class Plant extends Item{
 }
 
 class Shelves extends Item{
+
+  tidied_today: boolean = false;
+  messiness: number = 1;
+
   constructor(game: Game, pos: Coords){
     super(game, "shelves", pos, Item.INTERACT_DOWN);
     this.width=2;
   }
+
+  interact(){
+    let self = this;
+    if(self.messiness > 0 && !self.tidied_today){
+      self.game.showChoiceMessage("The shelves are really messy, do you  want to tidy them?", "Yes", "No",
+        function yes(){
+          self.game.allow_interaction = false;
+          self.activate();
+          self.game.action_timer = setTimeout(function tidy(){
+            self.game.allow_interaction = true;
+            self.deactivate();
+            self.messiness--;
+            let msg = (self.messiness == 0) ? "The shelves look great! You could read a book if you wanted" : "The shelves look a bit tidier now";
+            self.game.showMessage(msg, function(){
+              self.game.state.energy -= 2;
+            })
+          }, 2000);
+        });
+    }else{
+      self.game.showChoiceMessage("Do you want to read a book?", "Yes", "No",
+        function yes(){
+           // take book and walk to sofa
+           self.game.allow_interaction = false;
+           let sofa = self.game.map.objects.get_object("sofa");
+           self.game.player.set_target_object(sofa, function(){
+             // check if day has ended
+             if(self.game.betwixt_days) return;
+             // sit and read (if sofa is tidy?)
+             sofa.activate();
+             self.game.action_timer = setTimeout(function read(){
+               self.game.state.happiness += 2;
+               sofa.deactivate();
+               // take back
+               self.game.player.set_target_object(self.game.map.objects.get_object("shelves"), function(){
+                 self.game.allow_interaction = true;
+               });
+             }, 3000);
+           });
+        });
+    }
+  }
+
+  day_tick(){
+    this.tidied_today = false;
+  }
+
+
 }
 
 class Wardrobe extends Item{
@@ -227,6 +267,12 @@ export class Objects{
     this.objects.forEach(function(o){
       o.end_day();
     });
+  }
+
+  get_object(name: string){
+    return this.objects.filter(function(o){
+      return o.name == name;
+    })[0];
   }
 
 }
