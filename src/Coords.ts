@@ -14,6 +14,10 @@ export default class Coords{
     return new Coords(Math.floor(e.offsetX / Coords.TILE_SIZE), Math.floor(e.offsetY / Coords.TILE_SIZE));
   }
 
+  static centre_text(outerwidth: number, innerwidth: number){
+    return (outerwidth - innerwidth) / 2;
+  }
+
   equals(c: Coords){
     return c.x == this.x && c.y == this.y;
   }

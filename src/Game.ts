@@ -15,6 +15,8 @@ export default class Game{
   player: Player;
   tile_pos: Coords;
   state: Dictionary<number>;
+  allow_interaction: boolean = false;
+  action_timer: number;
 
   private ctx: CanvasRenderingContext2D;
   private render_loop: number;
@@ -37,7 +39,6 @@ export default class Game{
   private button_highlight_2: boolean = false;
 
   private betwixt_days: boolean = true;
-  private allow_interaction: boolean = false;
 
   private night_start_time: number;
   private is_night: boolean = false;
@@ -84,6 +85,8 @@ export default class Game{
 
   endDay(){
     var self = this;
+    clearTimeout(this.action_timer);
+    self.map.objects.end_day();
     self.betwixt_days = true;
     self.showMessage("It's time for bed...", function(){
       self.allow_interaction = false;
@@ -242,6 +245,8 @@ export default class Game{
       }else if(this.message_cb_2 && this.button_highlight_2){
         this.message_cb_2();
       }
+    }else if(this.message_initialised){
+      return;
     }else if(this.allow_interaction && this.map.can_move(c)){
       this.player.set_target_square(c);
     }else if(this.allow_interaction && this.map.is_interactible(c)){

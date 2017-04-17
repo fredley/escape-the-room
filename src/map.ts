@@ -40,7 +40,7 @@ export class Map{
     if (this.game.tile_pos){
       ctx.fillRect(this.game.tile_pos.x*Map.TILE_SIZE, this.game.tile_pos.y*Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE);
     }
-    ctx.font = Map.TILE_SIZE + "px Arial";
+    ctx.font = Map.TILE_SIZE/2 + "pt Arial";
     this.objects.objects.forEach(function(o){
       o.draw(ctx);
     });

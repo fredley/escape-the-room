@@ -1,6 +1,6 @@
 export default class Day {
 
-  static SECONDS_PER_HOUR: number = 20;
+  static SECONDS_PER_HOUR: number = 5;
 
   number: number;
   start: number;

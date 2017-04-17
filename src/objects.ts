@@ -2,6 +2,7 @@ import Coords from "./Coords"
 import Game from "./Game"
 import {Map} from "./Map"
 import Player from "./Player"
+import Day from "./Day"
 
 export class Item{
 
@@ -28,9 +29,9 @@ export class Item{
     this.is_interactible = true;
   }
 
-  day_tick(){
+  day_tick(){}
 
-  }
+  end_day(){}
 
   interact(){
     this.game.showMessage("Interaction with " + this.name);
@@ -51,7 +52,8 @@ export class Item{
           ctx.fillStyle="#f00";
           ctx.fillRect(c.real_x(), c.real_y(), Map.TILE_SIZE, Map.TILE_SIZE);
           ctx.fillStyle="#000000";
-          ctx.fillText(this.name[0], c.real_x(), c.real_y() + Map.TILE_SIZE);
+          var left = Coords.centre_text(Map.TILE_SIZE, ctx.measureText(this.name[0]).width);
+          ctx.fillText(this.name[0], c.real_x() + left, c.real_y() + Map.TILE_SIZE*0.75);
        }
     }
   }
@@ -65,9 +67,62 @@ class Bed extends Item{
 }
 
 class Desk extends Item{
+
+  playing: boolean = false;
+  played_today: number = 0;
+
   constructor(game: Game, pos: Coords){
     super(game, "desk", pos, Item.INTERACT_DOWN);
     this.width=2;
+  }
+
+  interact(){
+    var self = this;
+    self.game.showMessage("You sit down and play computer games...", function(){
+      self.game.allow_interaction = false;
+      self.playing = true;
+      self.game.action_timer = setTimeout(function(){
+        self.game.allow_interaction = true;
+        self.playing = false;
+        self.played_today++;
+        var msg;
+        switch(self.played_today){
+          case 1:
+            self.game.state.happiness++;
+            msg = "You feel a bit happier";
+            break;
+          case 2:
+            msg = "You feel a bit meh";
+            break;
+          default:
+            msg = "You feel run down";
+            self.game.state.happiness--;
+            break;
+        }
+        self.game.showMessage(msg);
+      }, Day.SECONDS_PER_HOUR * 1000);
+    });
+  }
+
+  end_day(){
+    this.playing = false;
+  }
+
+  day_tick(){
+    this.played_today = 0;
+  }
+
+  draw(ctx: CanvasRenderingContext2D){
+    var flash = this.playing && Math.random() > 0.5;
+    for(var i = this.position.x; i < this.position.x + this.width; i++){
+       for(var j = this.position.y; j < this.position.y + this.height; j++){
+          var c = new Coords(i,j);
+          ctx.fillStyle= (flash) ? "#ff0" : "#f00";
+          ctx.fillRect(c.real_x(), c.real_y(), Map.TILE_SIZE, Map.TILE_SIZE);
+          ctx.fillStyle="#000000";
+          ctx.fillText(this.name[0], c.real_x() + 10, c.real_y() + Map.TILE_SIZE*0.75);
+       }
+    }
   }
 }
 
@@ -165,6 +220,12 @@ export class Objects{
   day_tick(){
     this.objects.forEach(function(o){
       o.day_tick();
+    });
+  }
+
+  end_day(){
+    this.objects.forEach(function(o){
+      o.end_day();
     });
   }
 
