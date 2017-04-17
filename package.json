@@ -2,7 +2,7 @@
   "name": "escape-the-room",
   "version": "0.0.1",
   "description": "A game in which you can escape the room",
-  "author": "Fredley <fredley@gmail.com>",
+  "author": "fredley <fredley@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/fredley/escape"
