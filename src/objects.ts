@@ -66,6 +66,49 @@ export class Item{
   }
 }
 
+class MessyItem extends Item{
+
+  private tidied_today: boolean = false;
+  private messiness: number = 3;
+
+  interact_tidy(){}
+
+  interact(){
+    let self = this;
+    if(self.messiness > 0){
+      if(self.tidied_today){
+        self.game.showMessage("You don't feel like tidying this again today.");
+      }else{
+        self.game.showChoiceMessage("The " + self.name + " are really messy, do you  want to tidy them?", "Yes", "No",
+          function yes(){
+            self.game.allow_interaction = false;
+            self.activate();
+            self.game.action_timer = setTimeout(function tidy(){
+              self.game.allow_interaction = true;
+              self.deactivate();
+              self.messiness--;
+              let msg = (self.messiness == 0) ? ("The " + self.name + " look great! You could read a book if you wanted") : ("The " + self.name + " look a bit tidier now");
+              self.game.showMessage(msg, function(){
+                self.game.state.energy -= 2;
+              })
+            }, 2000);
+          });
+      }
+    }else{
+      self.interact_tidy();
+    }
+  }
+
+  is_tidy(){
+    return this.messiness == 0;
+  }
+
+  day_tick(){
+    this.tidied_today = false;
+  }
+
+}
+
 class Bed extends Item{
   constructor(game: Game, pos: Coords){
     super(game, "bed", pos, Item.INTERACT_IN);
@@ -115,16 +158,18 @@ class Desk extends Item{
   }
 }
 
-class Sofa extends Item{
+class Sofa extends MessyItem{
+
   constructor(game: Game, pos: Coords){
     super(game, "sofa", pos, Item.INTERACT_IN);
     this.height=2;
   }
+
 }
 
 class Plant extends Item{
 
-  last_checked_growth = 0;
+  last_checked_growth: number = 0;
   growth: number = 0;
   water: boolean = false;
 
@@ -152,43 +197,31 @@ class Plant extends Item{
   }
 }
 
-class Shelves extends Item{
-
-  tidied_today: boolean = false;
-  messiness: number = 1;
+class Shelves extends MessyItem{
 
   constructor(game: Game, pos: Coords){
     super(game, "shelves", pos, Item.INTERACT_DOWN);
     this.width=2;
   }
 
-  interact(){
-    let self = this;
-    if(self.messiness > 0 && !self.tidied_today){
-      self.game.showChoiceMessage("The shelves are really messy, do you  want to tidy them?", "Yes", "No",
-        function yes(){
-          self.game.allow_interaction = false;
-          self.activate();
-          self.game.action_timer = setTimeout(function tidy(){
-            self.game.allow_interaction = true;
-            self.deactivate();
-            self.messiness--;
-            let msg = (self.messiness == 0) ? "The shelves look great! You could read a book if you wanted" : "The shelves look a bit tidier now";
-            self.game.showMessage(msg, function(){
-              self.game.state.energy -= 2;
-            })
-          }, 2000);
-        });
-    }else{
-      self.game.showChoiceMessage("Do you want to read a book?", "Yes", "No",
-        function yes(){
-           // take book and walk to sofa
-           self.game.allow_interaction = false;
-           let sofa = self.game.map.objects.get_object("sofa");
-           self.game.player.set_target_object(sofa, function(){
-             // check if day has ended
-             if(self.game.betwixt_days) return;
-             // sit and read (if sofa is tidy?)
+  interact_tidy(){
+    var self = this;
+    self.game.showChoiceMessage("Do you want to read a book?", "Yes", "No",
+      function yes(){
+         // take book and walk to sofa
+         self.game.allow_interaction = false;
+         let sofa = self.game.map.objects.get_object("sofa") as MessyItem;
+         self.game.player.set_target_object(sofa, function(){
+           // check if day has ended
+           if(self.game.betwixt_days) return;
+           // sit and read (if sofa is tidy?)
+           if(sofa.is_tidy()){
+             self.game.showMessage("Oh dear, the sofa is too messy to sit on.", function(){
+               self.game.player.set_target_object(self.game.map.objects.get_object("shelves"), function(){
+                 self.game.allow_interaction = true;
+               });
+             });
+           }else{
              sofa.activate();
              self.game.action_timer = setTimeout(function read(){
                self.game.state.happiness += 2;
@@ -198,19 +231,14 @@ class Shelves extends Item{
                  self.game.allow_interaction = true;
                });
              }, 3000);
-           });
-        });
-    }
+           }
+         });
+      });
   }
-
-  day_tick(){
-    this.tidied_today = false;
-  }
-
 
 }
 
-class Wardrobe extends Item{
+class Wardrobe extends MessyItem {
   constructor(game: Game, pos: Coords){
     super(game, "wardrobe", pos, Item.INTERACT_UP);
     this.width=3;
