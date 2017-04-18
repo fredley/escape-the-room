@@ -91,7 +91,7 @@ class MessyItem extends Item{
                 ? ("The " + self.name + " look great! You could read a book if you wanted")
                 : ("The " + self.name + " look a bit tidier now")
               self.game.showMessage(msg, function(){
-                self.game.state.energy -= 2
+                self.game.expend_energy(2)
               })
             }, 2000)
           })
@@ -139,7 +139,7 @@ class Desk extends Item{
         var msg
         switch(self.played_today){
           case 1:
-            self.game.state.happiness++
+            self.game.add_happiness()
             msg = "You feel a bit happier"
             break
           case 2:
@@ -147,7 +147,7 @@ class Desk extends Item{
             break
           default:
             msg = "You feel run down"
-            self.game.state.happiness--
+            self.game.add_happiness(-1)
             break
         }
         self.game.showMessage(msg)
@@ -185,10 +185,10 @@ class Plant extends Item{
     }else if(this.last_checked_growth < this.growth){
       this.last_checked_growth = this.growth
       this.game.showMessage("You water the plant. It's grown a bit \nsince you last checked.")
-      this.game.state.happiness += 1
+      this.game.add_happiness()
     }
     this.water = true
-    this.game.state.energy -= 1
+    this.game.expend_energy(1)
   }
 
   day_tick(){
@@ -220,7 +220,7 @@ class Shelves extends MessyItem{
            if(sofa.is_tidy()){
              sofa.activate()
              self.game.action_timer = setTimeout(function read(){
-               self.game.state.happiness += 2
+               self.game.add_happiness(2)
                sofa.deactivate()
                // take back
                self.game.player.set_target_object(self.game.map.objects.get_object("shelves"), function(){
@@ -259,7 +259,7 @@ class Fridge extends Item{
     if(this.pizzas > 0){
       this.pizzas--
       this.game.showMessage("You eat a pizza, there are " + this.pizzas + " left.")
-      this.game.state.energy += 1
+      this.game.expend_energy(-1)
     }else{
       this.game.showMessage("You open the fridge, but it's empty.")
     }
@@ -275,8 +275,7 @@ export class Objects{
   constructor(game: Game){
     this.game = game
 
-    this.objects =
-    [
+    this.objects = [
       new Bed(game, new Coords(0, 1)),
       new Desk(game, new Coords(1, 0)),
       new Sofa(game, new Coords(0, 4)),

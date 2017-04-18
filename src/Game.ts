@@ -5,16 +5,11 @@ import {Objects, Item} from "./Objects"
 import Day from "./Day"
 import * as $ from "./jquery"
 
-interface Dictionary<T> {
-    [K: string]: T
-}
-
 export default class Game{
 
   map: Map
   player: Player
   tile_pos: Coords
-  state: Dictionary<number>
   allow_interaction: boolean = false
   action_timer: number
   betwixt_days: boolean = true
@@ -45,6 +40,9 @@ export default class Game{
   private static NIGHT_FADE_TIME = 3 * 1000
 
   private day: Day
+  private energy: number
+  private happiness: number
+  private hour: number = 0
 
 
   constructor(){
@@ -57,14 +55,25 @@ export default class Game{
 
     this.player = new Player(this)
 
-    this.state = {
-      energy: 5,
-      happiness: 0,
-      day: 0,
-      hour: 0
-    }
+    this.energy = 5
+    this.happiness = 0
 
     this.startDay()
+  }
+
+  add_happiness(amount: number = 1){
+    this.happiness += amount
+  }
+
+  expend_energy(amount: number){
+    this.energy -= amount
+    if(this.energy <= 0){
+      this.endDay()
+    }
+  }
+
+  private day_number(){
+    return (this.day && this.day.number) || 0
   }
 
   startDay(){
@@ -74,8 +83,8 @@ export default class Game{
     self.showMessage("You wake up at the start of a new day", function(){
       self.showMessage("You feel terrible", function(){
         self.showMessage("You feel like playing computer games...", function(){
-          self.state.energy = 5 + self.state.happiness
-          self.day = new Day(self.state.day + 1, 11)
+          self.energy = 5 + self.happiness
+          self.day = new Day(self.day_number() + 1, 11)
           self.allow_interaction = true
           self.betwixt_days = false
         })
@@ -106,11 +115,10 @@ export default class Game{
 
     this.map.draw(ctx)
     this.player.draw(ctx)
-    for (var s in this.state){
-      if (this.state.hasOwnProperty(s)){
-        $('#state-'+s).text(this.state[s])
-      }
-    }
+    $('#state-energy').text(this.energy)
+    $('#state-happiness').text(this.happiness)
+    $('#state-day').text(this.day_number())
+    $('#state-hour').text(this.hour)
     if(this.message_initialised || this.message.length > 0){
       if(!this.message_initialised){
         this.drawn_message = ""
@@ -215,19 +223,14 @@ export default class Game{
     }
 
     if(this.day){
-      this.state.day = this.day.number
       var new_hour = this.day.get_hour()
-      if(new_hour > this.state.hour){
-        this.state.energy--
-        if(this.state.energy <= 0){
-          this.endDay()
-        }
-        this.state.hour = new_hour
-        if (this.state.hour > 22){
-          this.state.energy -= this.state.energy / 2
-        }
-        if (this.state.hour > 23){
-          this.state.energy = 0
+      if(new_hour > this.hour){
+        this.expend_energy(1)
+        this.hour = new_hour
+        if (this.hour > 22){
+          this.expend_energy(this.energy / 2)
+        } else if (this.hour > 23){
+          this.expend_energy(this.energy)
         }
       }
     }

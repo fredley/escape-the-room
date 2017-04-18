@@ -3,9 +3,10 @@ export default class Day {
   static SECONDS_PER_HOUR: number = 5
 
   number: number
-  start: number
-  paused: boolean
-  pause_time: number
+
+  private start: number
+  private paused: boolean
+  private pause_time: number
 
   constructor(number: number, start_hour:number){
     this.number = number
