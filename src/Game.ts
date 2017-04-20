@@ -15,7 +15,6 @@ class Particle{
   private color: string
 
   constructor(name: string, pos: Coords, color: string){
-    console.log(this.name)
     this.name = name
     this.color = color
     this.pos = pos
@@ -124,16 +123,16 @@ export default class Game{
     self.map.objects.day_tick()
     self.is_night = false
     self.showMessage("You wake up at the start of a new day", function(){
-      self.showMessage("You feel terrible", function(){
-        self.showMessage("You feel like playing computer games...", function(){
+      // self.showMessage("You feel terrible", function(){
+      //   self.showMessage("You feel like playing computer games...", function(){
           self.energy = 5 + self.happiness
           let wake_hour = self.bed_time - 24 + 10 - Math.floor(Math.min(self.happiness / 5, 3))
           self.day = new Day(self.day_number() + 1, wake_hour)
           self.hour = wake_hour
           self.allow_interaction = true
           self.betwixt_days = false
-        })
-      })
+      //   })
+      // })
     })
   }
 
@@ -141,7 +140,7 @@ export default class Game{
     var self=this
     self.bed_time = self.hour
     self.showMessage("You're out of energy...", function(){
-      self.player.set_target_object(self.map.object_at(new Coords(0, 1)), function(){
+      self.player.set_target_object(self.map.objects.get_object('bed'), function(){
         self.showMessage("Night night...", function(){
           self.night_start_time = performance.now()
           self.is_night = true

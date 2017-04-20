@@ -1,6 +1,5 @@
 import Coords from "./Coords"
 import Game from "./Game"
-import Pathfinder from "./Pathfinder"
 import {Item} from "./Objects"
 import {Map} from "./Map"
 
@@ -45,10 +44,12 @@ export default class Player {
             return false
         }
         var start = (this.is_moving) ? this.target_pos : this.position
-        var path = Pathfinder.route(this.game, start, c)
+        var path = this.game.map.route(start, c)
         if (path) {
             path.shift()
             this.set_path(path)
+        }else{
+            console.error("no path")
         }
         return true
     }
