@@ -5,6 +5,40 @@ import {Objects, Item} from "./Objects"
 import Day from "./Day"
 import * as $ from "./jquery"
 
+class Particle{
+
+  private static MAX_AGE = 1000 * 0.5
+
+  private name: string
+  private pos: Coords
+  private born: number
+  private color: string
+
+  constructor(name: string, pos: Coords, color: string){
+    console.log(this.name)
+    this.name = name
+    this.color = color
+    this.pos = pos
+    this.born = performance.now()
+  }
+
+  draw(ctx: CanvasRenderingContext2D){
+    ctx.fillStyle=this.color
+    var top = (this.age() / Particle.MAX_AGE) * -Map.TILE_SIZE * 0.5
+    var left = Coords.centre_text(Map.TILE_SIZE, ctx.measureText(this.name).width)
+    ctx.fillText(this.name, this.pos.real_x() + left, this.pos.real_y() + top)
+  }
+
+  private age(){
+    return performance.now() - this.born
+  }
+
+  should_die(){
+    return this.age() > Particle.MAX_AGE
+  }
+
+}
+
 export default class Game{
 
   map: Map
@@ -17,6 +51,8 @@ export default class Game{
   private ctx: CanvasRenderingContext2D
   private render_loop: number
   private ticker: number
+
+  private particles: Array<Particle> = []
 
   private message: string = ""
   private message_cb: Function
@@ -37,6 +73,7 @@ export default class Game{
 
   private night_start_time: number
   private is_night: boolean = false
+  private bed_time: number = 24
   private static NIGHT_FADE_TIME = 3 * 1000
 
   private day: Day
@@ -62,11 +99,17 @@ export default class Game{
   }
 
   add_happiness(amount: number = 1){
-    this.happiness += amount
+    var sign = amount > 0 ? "++" : "--"
+    var color = amount > 0 ? "#0f0" : "#f00"
+    this.particles.push(new Particle(sign + amount, this.player.get_pos(), color))
+    this.happiness = Math.max(this.happiness + amount, 0)
   }
 
   expend_energy(amount: number){
-    this.energy -= amount
+    var sign = amount > 0 ? "--" : "++"
+    var color = amount > 0 ? "#f00" : "#0f0"
+    this.particles.push(new Particle(sign + amount, this.player.get_pos(), color))
+    this.energy = Math.max(this.energy - amount, 0)
     if(this.energy <= 0){
       this.endDay()
     }
@@ -84,9 +127,24 @@ export default class Game{
       self.showMessage("You feel terrible", function(){
         self.showMessage("You feel like playing computer games...", function(){
           self.energy = 5 + self.happiness
-          self.day = new Day(self.day_number() + 1, 11)
+          let wake_hour = self.bed_time - 24 + 10 - Math.floor(Math.min(self.happiness / 5, 3))
+          self.day = new Day(self.day_number() + 1, wake_hour)
+          self.hour = wake_hour
           self.allow_interaction = true
           self.betwixt_days = false
+        })
+      })
+    })
+  }
+
+  private go_to_bed(){
+    var self=this
+    self.bed_time = self.hour
+    self.showMessage("You're out of energy...", function(){
+      self.player.set_target_object(self.map.object_at(new Coords(0, 1)), function(){
+        self.showMessage("Night night...", function(){
+          self.night_start_time = performance.now()
+          self.is_night = true
         })
       })
     })
@@ -97,15 +155,31 @@ export default class Game{
     clearTimeout(this.action_timer)
     self.map.objects.end_day()
     self.betwixt_days = true
-    self.showMessage("It's time for bed...", function(){
-      self.allow_interaction = false
-      self.player.set_target_object(self.map.object_at(new Coords(0, 1)), function(){
-        self.showMessage("Night night...", function(){
-          self.night_start_time = performance.now()
-          self.is_night = true
+    self.allow_interaction = false
+    if(self.hour < 20){
+      // too early for bed
+      self.showMessage("You're tired out, but it's too early for bed. Play computer games for a bit...", function(){
+        let desk = self.map.objects.get_object("desk")
+        self.player.set_target_object(desk, function(){
+          desk.activate()
+          var hours_played = 0
+          self.action_timer = setInterval(function(){
+            self.hour += 1
+            hours_played += 1
+            if(hours_played > 2){
+              self.add_happiness(-1)
+            }
+            if(self.hour > 23){
+              clearInterval(self.action_timer)
+              desk.deactivate()
+              self.go_to_bed()
+            }
+          }, 1000)
         })
       })
-    })
+    }else{
+      self.go_to_bed()
+    }
   }
 
 
@@ -115,6 +189,7 @@ export default class Game{
 
     this.map.draw(ctx)
     this.player.draw(ctx)
+    this.particles.forEach((particle: Particle) => particle.draw(ctx))
     $('#state-energy').text(this.energy)
     $('#state-happiness').text(this.happiness)
     $('#state-day').text(this.day_number())
@@ -215,6 +290,7 @@ export default class Game{
 
   tick(){
     this.player.tick()
+    this.particles = this.particles.filter((particle: Particle) => !particle.should_die())
     if(this.betwixt_days){
       if(this.is_night && performance.now() - this.night_start_time > 3 * Game.NIGHT_FADE_TIME){
         this.startDay()

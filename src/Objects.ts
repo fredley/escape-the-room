@@ -6,12 +6,6 @@ import Day from "./Day"
 
 export class Item{
 
-  static INTERACT_LEFT: Coords = new Coords(-1, 0)
-  static INTERACT_RIGHT: Coords = new Coords(1, 0)
-  static INTERACT_UP: Coords = new Coords(0, -1)
-  static INTERACT_DOWN: Coords = new Coords(0, 1)
-  static INTERACT_IN: Coords = new Coords(0, 0)
-
   readonly position: Coords
   width: number = 1
   height: number = 1
@@ -20,13 +14,13 @@ export class Item{
   readonly name: string
   protected game: Game
   protected active: boolean = false
-  readonly interact_direction: Coords
+  readonly interact_offset: Coords
 
-  constructor(game: Game, name: string, position: Coords, interact_direction: Coords){
+  constructor(game: Game, name: string, position: Coords, interact_offset: Coords){
     this.position = position
     this.name = name
     this.game = game
-    this.interact_direction = interact_direction
+    this.interact_offset = interact_offset
     this.is_interactible = true
   }
 
@@ -44,7 +38,7 @@ export class Item{
   }
 
   interact_pos(){
-    return this.position.plus(this.interact_direction)
+    return this.position.plus(this.interact_offset)
   }
 
   covers(c: Coords){
@@ -113,7 +107,7 @@ class MessyItem extends Item{
 
 class Bed extends Item{
   constructor(game: Game, pos: Coords){
-    super(game, "bed", pos, Item.INTERACT_IN)
+    super(game, "bed", pos, new Coords(0, 0))
     this.height=2
   }
 }
@@ -123,7 +117,7 @@ class Desk extends Item{
   played_today: number = 0
 
   constructor(game: Game, pos: Coords){
-    super(game, "desk", pos, Item.INTERACT_DOWN)
+    super(game, "desk", pos, new Coords(1, 1))
     this.width=2
   }
 
@@ -163,7 +157,7 @@ class Desk extends Item{
 class Sofa extends MessyItem{
 
   constructor(game: Game, pos: Coords){
-    super(game, "sofa", pos, Item.INTERACT_IN)
+    super(game, "sofa", pos, new Coords(0, 0))
     this.height=2
   }
 
@@ -176,7 +170,7 @@ class Plant extends Item{
   water: boolean = false
 
   constructor(game: Game, pos: Coords){
-    super(game, "plant", pos, Item.INTERACT_DOWN)
+    super(game, "plant", pos, new Coords(0, 1))
   }
 
   interact(){
@@ -202,8 +196,8 @@ class Plant extends Item{
 class Shelves extends MessyItem{
 
   constructor(game: Game, pos: Coords){
-    super(game, "shelves", pos, Item.INTERACT_DOWN)
-    this.width=2
+    super(game, "shelves", pos, new Coords(-1, 1))
+    this.width=3
   }
 
   interact_tidy(){
@@ -241,10 +235,28 @@ class Shelves extends MessyItem{
 }
 
 class Wardrobe extends MessyItem {
+
+  used_today: boolean = false
+
   constructor(game: Game, pos: Coords){
-    super(game, "wardrobe", pos, Item.INTERACT_UP)
+    super(game, "wardrobe", pos, new Coords(-1, 1))
     this.width=3
   }
+
+  interact_tidy(){
+    if(this.used_today){
+      this.game.showMessage("You've already put on new clothes today")
+    }else{
+      this.game.showMessage("You change into fresh clothes, much better!")
+      this.used_today = true
+      this.game.add_happiness()
+    }
+  }
+
+  day_tick(){
+    this.used_today = false
+  }
+
 }
 
 class Fridge extends Item{
@@ -252,7 +264,7 @@ class Fridge extends Item{
   pizzas: number = 3
 
   constructor(game: Game, pos: Coords){
-    super(game, "fridge", pos, Item.INTERACT_LEFT)
+    super(game, "fridge", pos, new Coords(-1, 0))
   }
 
   interact(){
@@ -263,6 +275,10 @@ class Fridge extends Item{
     }else{
       this.game.showMessage("You open the fridge, but it's empty.")
     }
+  }
+
+  day_tick(){
+    this.pizzas += 1
   }
 
 }
