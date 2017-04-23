@@ -37,5 +37,5 @@ canvas{
   clear: both;
 }
 .mask{
-  filter: grayscale(10%);
+  filter: grayscale(100%);
 }

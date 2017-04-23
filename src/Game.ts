@@ -288,10 +288,11 @@ export default class Game{
   }
 
   tick(){
-    this.player.tick()
+    var tick_time = performance.now()
+    this.player.tick(tick_time)
     this.particles = this.particles.filter((particle: Particle) => !particle.should_die())
     if(this.betwixt_days){
-      if(this.is_night && performance.now() - this.night_start_time > 3 * Game.NIGHT_FADE_TIME){
+      if(this.is_night && tick_time - this.night_start_time > 3 * Game.NIGHT_FADE_TIME){
         this.startDay()
       }
       return
