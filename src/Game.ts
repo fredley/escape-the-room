@@ -187,7 +187,6 @@ export default class Game{
     let ctx = this.ctx
 
     this.map.draw(ctx)
-    this.player.draw(ctx)
     this.particles.forEach((particle: Particle) => particle.draw(ctx))
     $('#state-energy').text(this.energy)
     $('#state-happiness').text(this.happiness)

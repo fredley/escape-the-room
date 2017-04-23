@@ -67,6 +67,7 @@ export default class Player {
     draw(ctx: CanvasRenderingContext2D) {
         ctx.beginPath()
         var c = this.get_pos()
+        ctx.fillStyle = "#000"
         ctx.arc(c.real_mid_x(), c.real_mid_y(), Map.TILE_SIZE / 4, 0, 2 * Math.PI)
         ctx.closePath()
         ctx.fill()

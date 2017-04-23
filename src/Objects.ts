@@ -13,15 +13,21 @@ export class Item{
 
   readonly name: string
   protected game: Game
+  protected manager: Objects
   protected active: boolean = false
   readonly interact_offset: Coords
+  protected sprite_pos: Coords
+  protected sprite_offset: number
 
-  constructor(game: Game, name: string, position: Coords, interact_offset: Coords){
+  constructor(objects: Objects, game: Game, name: string, position: Coords, interact_offset: Coords, sprite_pos: Coords, sprite_offset: number = -1){
     this.position = position
     this.name = name
+    this.manager = objects
     this.game = game
     this.interact_offset = interact_offset
     this.is_interactible = true
+    this.sprite_pos = sprite_pos
+    this.sprite_offset = sprite_offset
   }
 
   day_tick(){}
@@ -47,16 +53,15 @@ export class Item{
 
   draw(ctx: CanvasRenderingContext2D){
     var flash = this.active && Math.random() > 0.5
-    for(var i = this.position.x; i < this.position.x + this.width; i++){
-       for(var j = this.position.y; j < this.position.y + this.height; j++){
-          var c = new Coords(i,j)
-          ctx.fillStyle= (flash) ? "#ff0" : "#f00"
-          ctx.fillRect(c.real_x(), c.real_y(), Map.TILE_SIZE, Map.TILE_SIZE)
-          ctx.fillStyle="#000000"
-          var left = Coords.centre_text(Map.TILE_SIZE, ctx.measureText(this.name[0]).width)
-          ctx.fillText(this.name[0], c.real_x() + left, c.real_y() + Map.TILE_SIZE*0.75)
-       }
-    }
+    ctx.drawImage(this.manager.sprites,
+                  this.sprite_pos.real_x(),
+                  this.sprite_pos.real_y(),
+                  this.width * Map.TILE_SIZE,
+                  (this.height - this.sprite_offset) * Map.TILE_SIZE,
+                  this.position.real_x(),
+                  this.position.real_y() + this.sprite_offset * Map.TILE_SIZE,
+                  this.width * Map.TILE_SIZE,
+                  (this.height - this.sprite_offset) * Map.TILE_SIZE);
   }
 }
 
@@ -106,8 +111,8 @@ class MessyItem extends Item{
 }
 
 class Bed extends Item{
-  constructor(game: Game, pos: Coords){
-    super(game, "bed", pos, new Coords(0, 0))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "bed", pos, new Coords(0, 0), new Coords(0, 1))
     this.height=2
   }
 }
@@ -116,8 +121,8 @@ class Desk extends Item{
 
   played_today: number = 0
 
-  constructor(game: Game, pos: Coords){
-    super(game, "desk", pos, new Coords(1, 1))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "desk", pos, new Coords(1, 1), new Coords(1,0))
     this.width=2
   }
 
@@ -156,8 +161,8 @@ class Desk extends Item{
 
 class Sofa extends MessyItem{
 
-  constructor(game: Game, pos: Coords){
-    super(game, "sofa", pos, new Coords(0, 0))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "sofa", pos, new Coords(0, 0), new Coords(1, 2))
     this.height=2
   }
 
@@ -169,8 +174,8 @@ class Plant extends Item{
   growth: number = 0
   water: boolean = false
 
-  constructor(game: Game, pos: Coords){
-    super(game, "plant", pos, new Coords(0, 1))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "plant", pos, new Coords(0, 1), new Coords(3,0))
   }
 
   interact(){
@@ -195,8 +200,8 @@ class Plant extends Item{
 
 class Shelves extends MessyItem{
 
-  constructor(game: Game, pos: Coords){
-    super(game, "shelves", pos, new Coords(-1, 1))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "shelves", pos, new Coords(1, -1), new Coords(4, 4))
     this.width=3
   }
 
@@ -238,8 +243,8 @@ class Wardrobe extends MessyItem {
 
   used_today: boolean = false
 
-  constructor(game: Game, pos: Coords){
-    super(game, "wardrobe", pos, new Coords(-1, 1))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "wardrobes", pos, new Coords(1, 1), new Coords(4, 0))
     this.width=3
   }
 
@@ -263,8 +268,8 @@ class Fridge extends Item{
 
   pizzas: number = 3
 
-  constructor(game: Game, pos: Coords){
-    super(game, "fridge", pos, new Coords(-1, 0))
+  constructor(objects: Objects, game: Game, pos: Coords){
+    super(objects, game, "fridge", pos, new Coords(0, -1), new Coords(5, 2))
   }
 
   interact(){
@@ -288,17 +293,23 @@ export class Objects{
   game: Game
   objects: Array<Item>
 
+  sprite_sheet: string = "img/sprites.png"
+  sprites: HTMLImageElement
+
   constructor(game: Game){
-    this.game = game
+    this.objects, game = game
+
+    this.sprites = new Image()
+    this.sprites.src = this.sprite_sheet
 
     this.objects = [
-      new Bed(game, new Coords(0, 1)),
-      new Desk(game, new Coords(1, 0)),
-      new Sofa(game, new Coords(0, 4)),
-      new Plant(game, new Coords(3, 0)),
-      new Shelves(game, new Coords(4, 0)),
-      new Wardrobe(game, new Coords(4, 5)),
-      new Fridge(game, new Coords(8, 2))
+      new Bed(this, game, new Coords(0, 1)),
+      new Desk(this, game, new Coords(1, 0)),
+      new Sofa(this, game, new Coords(0, 4)),
+      new Plant(this, game, new Coords(3, 0)),
+      new Shelves(this, game, new Coords(4, 5)),
+      new Wardrobe(this, game, new Coords(4, 0)),
+      new Fridge(this, game, new Coords(8, 2))
     ]
   }
 

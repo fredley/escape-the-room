@@ -20,6 +20,7 @@ export class Map{
   static TILE_SIZE: number = 32
 
   private game: Game
+  private sprite: HTMLImageElement
   objects: Objects
   grid: Array<Array<boolean>>
   private walls: Array<Array<Coords>> = [
@@ -30,6 +31,8 @@ export class Map{
   constructor(game: Game){
     this.game = game
     this.objects = new Objects(game)
+    this.sprite = new Image()
+    this.sprite.src = "img/bg.png"
 
     var grid: Array<Array<boolean>> = []
     for (var i=0; i<Map.WIDTH; i++) {
@@ -49,27 +52,33 @@ export class Map{
 
   draw(ctx: CanvasRenderingContext2D){
     ctx.clearRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT)
-    ctx.beginPath()
-    ctx.fillStyle="#888"
+    ctx.drawImage(this.sprite, 0, 0)
+    // ctx.beginPath()
+    ctx.fillStyle="rgba(255,255,255,0.1)"
     if (this.game.tile_pos){
       ctx.fillRect(this.game.tile_pos.x*Map.TILE_SIZE, this.game.tile_pos.y*Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE)
     }
-    ctx.font = Map.TILE_SIZE/2 + "pt Arial"
-    this.objects.objects.forEach(function(o){
+    // ctx.font = Map.TILE_SIZE/2 + "pt Arial"
+    let player_y = this.game.player.get_pos().y
+    this.objects.objects.filter((o: Item) => o.position.y < player_y).forEach(function(o){
       o.draw(ctx)
     })
-    ctx.lineWidth = 1
-    ctx.fillStyle="#000000"
-    for(let i=0; i<=Map.WIDTH; i++){
-      ctx.moveTo(i*Map.TILE_SIZE, 0)
-      ctx.lineTo(i*Map.TILE_SIZE, Map.HEIGHT*Map.TILE_SIZE)
-      if(i <= Map.HEIGHT){
-        ctx.moveTo(0, i*Map.TILE_SIZE)
-        ctx.lineTo(Map.WIDTH*Map.TILE_SIZE, i*Map.TILE_SIZE)
-      }
-    }
-    ctx.stroke()
-    ctx.closePath()
+    this.game.player.draw(ctx)
+    this.objects.objects.filter((o: Item) => o.position.y >= player_y).forEach(function(o){
+      o.draw(ctx)
+    })
+    // ctx.lineWidth = 1
+    // ctx.fillStyle="#000000"
+    // for(let i=0; i<=Map.WIDTH; i++){
+    //   ctx.moveTo(i*Map.TILE_SIZE, 0)
+    //   ctx.lineTo(i*Map.TILE_SIZE, Map.HEIGHT*Map.TILE_SIZE)
+    //   if(i <= Map.HEIGHT){
+    //     ctx.moveTo(0, i*Map.TILE_SIZE)
+    //     ctx.lineTo(Map.WIDTH*Map.TILE_SIZE, i*Map.TILE_SIZE)
+    //   }
+    // }
+    // ctx.stroke()
+    // ctx.closePath()
     ctx.beginPath()
     ctx.lineWidth = 3
     this.walls.forEach(function(wall){
