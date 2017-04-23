@@ -303,13 +303,13 @@ export class Objects{
     this.sprites.src = this.sprite_sheet
 
     this.objects = [
-      new Bed(this, game, new Coords(0, 1)),
-      new Desk(this, game, new Coords(1, 0)),
-      new Sofa(this, game, new Coords(0, 4)),
-      new Plant(this, game, new Coords(3, 0)),
-      new Shelves(this, game, new Coords(4, 5)),
-      new Wardrobe(this, game, new Coords(4, 0)),
-      new Fridge(this, game, new Coords(8, 2))
+      new Bed(this, game, new Coords(0, 2)),
+      new Desk(this, game, new Coords(1, 1)),
+      new Sofa(this, game, new Coords(0, 5)),
+      new Plant(this, game, new Coords(3, 1)),
+      new Shelves(this, game, new Coords(4, 6)),
+      new Wardrobe(this, game, new Coords(4, 1)),
+      new Fridge(this, game, new Coords(8, 3))
     ]
   }
 

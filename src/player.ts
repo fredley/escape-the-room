@@ -18,7 +18,7 @@ export default class Player {
 
     constructor(game: Game){
       this.game=game
-      this.position = new Coords(1, 1)
+      this.position = new Coords(0, 2)
     }
 
     private move_to(c: Coords) {

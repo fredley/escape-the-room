@@ -16,7 +16,7 @@ class PathLocation{
 export class Map{
 
   static WIDTH: number = 16
-  static HEIGHT: number = 14
+  static HEIGHT: number = 15
   static TILE_SIZE: number = 32
 
   private game: Game
@@ -24,8 +24,9 @@ export class Map{
   objects: Objects
   grid: Array<Array<boolean>>
   private walls: Array<Array<Coords>> = [
-    [new Coords(0,6), new Coords(9, 6)],
-    [new Coords(9,0), new Coords(9, 5)]
+    [new Coords(0,1), new Coords(16, 1)],
+    [new Coords(0,7), new Coords(9, 7)],
+    [new Coords(9,1), new Coords(9, 6)]
   ]
 
   constructor(game: Game){
@@ -51,34 +52,10 @@ export class Map{
 
 
   draw(ctx: CanvasRenderingContext2D){
+    // Background
     ctx.clearRect(0,0,Map.TILE_SIZE * Map.WIDTH, Map.TILE_SIZE * Map.HEIGHT)
     ctx.drawImage(this.sprite, 0, 0)
-    // ctx.beginPath()
-    ctx.fillStyle="rgba(255,255,255,0.1)"
-    if (this.game.tile_pos){
-      ctx.fillRect(this.game.tile_pos.x*Map.TILE_SIZE, this.game.tile_pos.y*Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE)
-    }
-    // ctx.font = Map.TILE_SIZE/2 + "pt Arial"
-    let player_y = this.game.player.get_pos().y
-    this.objects.objects.filter((o: Item) => o.position.y < player_y).forEach(function(o){
-      o.draw(ctx)
-    })
-    this.game.player.draw(ctx)
-    this.objects.objects.filter((o: Item) => o.position.y >= player_y).forEach(function(o){
-      o.draw(ctx)
-    })
-    // ctx.lineWidth = 1
-    // ctx.fillStyle="#000000"
-    // for(let i=0; i<=Map.WIDTH; i++){
-    //   ctx.moveTo(i*Map.TILE_SIZE, 0)
-    //   ctx.lineTo(i*Map.TILE_SIZE, Map.HEIGHT*Map.TILE_SIZE)
-    //   if(i <= Map.HEIGHT){
-    //     ctx.moveTo(0, i*Map.TILE_SIZE)
-    //     ctx.lineTo(Map.WIDTH*Map.TILE_SIZE, i*Map.TILE_SIZE)
-    //   }
-    // }
-    // ctx.stroke()
-    // ctx.closePath()
+    // Walls
     ctx.beginPath()
     ctx.lineWidth = 3
     this.walls.forEach(function(wall){
@@ -88,6 +65,20 @@ export class Map{
     ctx.stroke()
     ctx.closePath()
     ctx.lineWidth = 1
+    // Tile highlight
+    ctx.fillStyle="rgba(255,255,255,0.1)"
+    if (this.game.tile_pos){
+      ctx.fillRect(this.game.tile_pos.x*Map.TILE_SIZE, this.game.tile_pos.y*Map.TILE_SIZE, Map.TILE_SIZE, Map.TILE_SIZE)
+    }
+    // Objects & Player
+    let player_y = this.game.player.get_pos().y
+    this.objects.objects.filter((o: Item) => o.position.y < player_y).forEach(function(o){
+      o.draw(ctx)
+    })
+    this.game.player.draw(ctx)
+    this.objects.objects.filter((o: Item) => o.position.y >= player_y).forEach(function(o){
+      o.draw(ctx)
+    })
   }
 
   or_reduce(a: any, b: any){ return a || b }

@@ -131,6 +131,7 @@ export default class Game{
           self.hour = wake_hour
           self.allow_interaction = true
           self.betwixt_days = false
+          self.player.set_target_square(new Coords(1, 2))
       //   })
       // })
     })
